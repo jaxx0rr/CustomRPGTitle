@@ -33,7 +33,7 @@ public class JxCustomRPGTitles
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        //OK
+
     }
 
     // Add the example block item to the building blocks tab
