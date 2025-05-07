@@ -67,7 +67,8 @@ public class MyBlockScreen extends AbstractContainerScreen<MyBlockMenu> {
         }).bounds(this.leftPos + 10, this.topPos + 16, 40, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("NPC"), btn -> {
-            insertIntoTextBox("/execute positioned %d %d %d unless entity @e[type=minecraft:villager, name=\"Jimmy\", distance=..5] run summon minecraft:villager ~ ~ ~ {CustomName:'{\"text\":\"Jimmy\"}',NoAI:1b,Invulnerable:1b,VillagerData:{profession:toolsmith,level:2,type:plains},Offers:{Recipes:[{buy:{id:\"minecraft:dirt\",Count:1},sell:{id:\"minecraft:diamond\",Count:1},maxUses:9999999,rewardExp:false}]}}");
+            //insertIntoTextBox("/execute positioned %d %d %d unless entity @e[type=minecraft:villager, name=\"Jimmy\", distance=..5] run summon minecraft:villager ~ ~ ~ {CustomName:'{\"text\":\"Jimmy\"}',NoAI:1b,Invulnerable:1b,VillagerData:{profession:toolsmith,level:2,type:plains},Offers:{Recipes:[{buy:{id:\"minecraft:dirt\",Count:1},sell:{id:\"minecraft:diamond\",Count:1},maxUses:9999999,rewardExp:false}]}}");
+            insertIntoTextBox("/execute positioned %d %d %d unless entity @e[type=minecraft:villager, name=\"Jimmy\", distance=..5] run summon minecraft:villager ~ ~ ~ {CustomName:'{\"text\":\"Jimmy\"}',NoAI:1b,Invulnerable:1b,Rotation:[%d.0f,0.0f],VillagerData:{profession:toolsmith,level:2,type:plains},Offers:{Recipes:[{buy:{id:\"minecraft:dirt\",Count:1},sell:{id:\"minecraft:diamond\",Count:1},maxUses:9999999,rewardExp:false}]}}");
         }).bounds(this.leftPos + 60, this.topPos + 16, 40, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("LABEL"), btn -> {

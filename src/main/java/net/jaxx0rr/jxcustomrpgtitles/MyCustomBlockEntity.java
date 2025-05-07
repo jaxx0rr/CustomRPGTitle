@@ -2,7 +2,9 @@ package net.jaxx0rr.jxcustomrpgtitles;
 
 import com.google.gson.JsonSyntaxException;
 import io.netty.buffer.Unpooled;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -19,11 +21,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MyCustomBlockEntity extends BlockEntity implements MenuProvider {
     private String customText = "";
@@ -87,26 +90,74 @@ public class MyCustomBlockEntity extends BlockEntity implements MenuProvider {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
-
+/*
     private int tickCounter = 0;
+    private final Map<UUID, Integer> triggerCooldowns = new HashMap<>();
+    private final Set<UUID> previousNearby = new HashSet<>();
+
     public void tick() {
         if (level == null || level.isClientSide) return;
+
         tickCounter++;
-        int threshold = 20 + level.random.nextInt(2); // 20 or 21 ticks
-        if (tickCounter >= threshold) { // 20 ticks = 1 second
+        int threshold = 20 + level.random.nextInt(2);
+        if (tickCounter >= threshold) {
             tickCounter = 0;
-            // Find players within 5 blocks
+
             List<Player> players = level.getEntitiesOfClass(Player.class, new AABB(worldPosition).inflate(10));
+            Set<UUID> currentNearby = players.stream().map(Player::getUUID).collect(Collectors.toSet());
+
             for (Player player : players) {
-                // Ensure we are only sending a title to one player at a time
-                if (!player.getUUID().equals(lastShownPlayerUUID)) {
-                    lastShownPlayerUUID = player.getUUID();
-                    //showTitleToPlayer((ServerPlayer) player, getText());
+                UUID uuid = player.getUUID();
+                int cooldown = triggerCooldowns.getOrDefault(uuid, 0);
+
+                // Only trigger if player just entered the area and is off cooldown
+                if (!previousNearby.contains(uuid) && cooldown <= 0) {
                     executeCommand((ServerPlayer) player, getText());
+                    triggerCooldowns.put(uuid, 100); // e.g. 5 seconds
                 }
             }
+
+            // Decrement cooldowns
+            triggerCooldowns.replaceAll((uuid, time) -> time - threshold);
+
+            // Remove expired entries (optional but clean)
+            triggerCooldowns.entrySet().removeIf(entry -> entry.getValue() <= 0 && !currentNearby.contains(entry.getKey()));
+
+            // Update previousNearby for next tick
+            previousNearby.clear();
+            previousNearby.addAll(currentNearby);
         }
     }
+*/
+
+    private int tickCounter = 0;
+    private final Set<UUID> recentlyTriggeredPlayers = new HashSet<>();
+
+    public void tick() {
+        if (level == null || level.isClientSide) return;
+
+        tickCounter++;
+        int threshold = 20 + level.random.nextInt(2); // ~1 second
+        if (tickCounter >= threshold) {
+            tickCounter = 0;
+
+            List<Player> players = level.getEntitiesOfClass(Player.class, new AABB(worldPosition).inflate(10));
+            Set<UUID> currentlyNearby = players.stream().map(Player::getUUID).collect(Collectors.toSet());
+
+            for (Player player : players) {
+                UUID uuid = player.getUUID();
+                if (!recentlyTriggeredPlayers.contains(uuid)) {
+                    executeCommand((ServerPlayer) player, getText());
+                    recentlyTriggeredPlayers.add(uuid);
+                }
+            }
+
+            // Remove players who are no longer nearby
+            recentlyTriggeredPlayers.retainAll(currentlyNearby);
+        }
+    }
+
+
 
     private void showTitleToPlayer(ServerPlayer player, String text) {
         Component cmp;
@@ -133,29 +184,46 @@ public class MyCustomBlockEntity extends BlockEntity implements MenuProvider {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
-        // Get position of this block
         BlockPos pos = this.getBlockPos(); // 'this' is the BlockEntity
+        int rotation = 0; // Default rotation (facing south)
 
-        // Split by newline or semicolon
+        // Optional: derive rotation from block state if your block supports direction
+        if (this.getBlockState().hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            Direction dir = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            rotation = switch (dir) {
+                case NORTH -> 180;
+                case EAST -> -90;
+                case WEST -> 90;
+                default -> 0; // SOUTH
+            };
+        }
+
         String[] commands = commandInput.split("[;\n]");
 
         for (String cmd : commands) {
             String trimmed = cmd.trim();
-            if (!trimmed.isEmpty()) {
-                double fx = pos.getX();
-                double fy = pos.getY();
-                double fz = pos.getZ();
+            if (trimmed.isEmpty()) continue;
 
-                if (trimmed.toLowerCase().contains("summon armor_stand")) {
-                    fx += 0.5;
-                    fy += 3;
-                    fz += 0.5;
-                } else {
-                    fy += 2;
-                }
-                String command = String.format(trimmed, (int) fx, (int) fy, (int) fz);
-                server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+            double fx = pos.getX();
+            double fy = pos.getY();
+            double fz = pos.getZ();
+
+            // Adjust position for some commands
+            if (trimmed.toLowerCase().contains("summon armor_stand")) {
+                fx += 0.5;
+                fy += 3;
+                fz += 0.5;
+            } else {
+                fy += 2;
             }
+
+            String finalCommand = String.format(trimmed, (int) fx, (int) fy, (int) fz, rotation);
+
+            CommandSourceStack source = player.createCommandSourceStack()
+                    .withSuppressedOutput()
+                    .withPermission(2);
+
+            server.getCommands().performPrefixedCommand(source, finalCommand);
         }
     }
 
