@@ -92,6 +92,9 @@ A custom Minecraft Forge mod for **1.20.1**, designed for RPG maps and adventure
 2. Place the `.jar` into your `mods/` folder
 3. Launch the game
 
+
+## note: if you ever put a proximity trigger on a teleport use this command: /crpgblocks_disable
+
 ---
 
 ## 📝 License

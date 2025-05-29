@@ -76,7 +76,7 @@ public class JxCustomRPGTitles
     private void registerCommands(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 
-        dispatcher.register(Commands.literal("jxcmd_disable_all_blocks")
+        dispatcher.register(Commands.literal("crpgblocks_disable")
                 .requires(source -> source.hasPermission(2))
                 .executes(ctx -> {
                     GLOBAL_BLOCK_DISABLE = true;
@@ -84,7 +84,7 @@ public class JxCustomRPGTitles
                     return 1;
                 }));
 
-        dispatcher.register(Commands.literal("jxcmd_enable_all_blocks")
+        dispatcher.register(Commands.literal("crpgblocks_enable")
                 .requires(source -> source.hasPermission(2))
                 .executes(ctx -> {
                     GLOBAL_BLOCK_DISABLE = false;
