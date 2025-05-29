@@ -23,6 +23,41 @@ public class ModMessages {
                 UpdateCustomTextPacket::decode,
                 UpdateCustomTextPacket::handle
         );
+        INSTANCE.registerMessage(
+                id++,
+                UpdateRedstoneModePacket.class,
+                UpdateRedstoneModePacket::encode,
+                UpdateRedstoneModePacket::decode,
+                UpdateRedstoneModePacket::handle
+        );
+        INSTANCE.registerMessage(
+                id++,
+                UpdateSingleUsePacket.class,
+                UpdateSingleUsePacket::encode,
+                UpdateSingleUsePacket::decode,
+                UpdateSingleUsePacket::handle
+        );
+        INSTANCE.registerMessage(
+                id++,
+                UpdateCreativeOnlyPacket.class,
+                UpdateCreativeOnlyPacket::encode,
+                UpdateCreativeOnlyPacket::decode,
+                UpdateCreativeOnlyPacket::handle
+        );
+        INSTANCE.registerMessage(
+                id++,
+                ClearTriggerHistoryPacket.class,
+                ClearTriggerHistoryPacket::encode,
+                ClearTriggerHistoryPacket::decode,
+                ClearTriggerHistoryPacket::handle
+        );
+        INSTANCE.registerMessage(
+                id++,
+                TeleportPetsToLocationPacket.class,
+                TeleportPetsToLocationPacket::encode,
+                TeleportPetsToLocationPacket::decode,
+                TeleportPetsToLocationPacket::handle
+        );
     }
 }
 

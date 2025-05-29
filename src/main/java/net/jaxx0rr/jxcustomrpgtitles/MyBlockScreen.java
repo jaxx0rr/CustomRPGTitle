@@ -1,7 +1,6 @@
 package net.jaxx0rr.jxcustomrpgtitles;
 
-import net.jaxx0rr.jxcustomrpgtitles.network.ModMessages;
-import net.jaxx0rr.jxcustomrpgtitles.network.UpdateCustomTextPacket;
+import net.jaxx0rr.jxcustomrpgtitles.network.*;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,9 +9,11 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -23,9 +24,11 @@ import static net.jaxx0rr.jxcustomrpgtitles.JxCustomRPGTitles.MODID;
 public class MyBlockScreen extends AbstractContainerScreen<MyBlockMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(MODID, "textures/gui/my_block_gui.png");
     private MultiLineEditBox textBox;
+    private final MyCustomBlockEntity blockEntity;
 
     public MyBlockScreen(MyBlockMenu container, Inventory inventory, Component title) {
         super(container, inventory, title);
+        blockEntity = container.getBlockEntity();
         this.imageWidth = 650;
         this.imageHeight = 366;
     }
@@ -47,6 +50,8 @@ public class MyBlockScreen extends AbstractContainerScreen<MyBlockMenu> {
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // Do nothing to suppress default labels like "Inventory"
         // graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
+        //graphics.drawString(this.font, "Activates on:", this.leftPos + 86, this.topPos - 23, 0x888888);
+        //graphics.drawString(this.font, "Mode:", this.leftPos + 324, this.topPos - 23, 0x888888);
     }
 
     private void insertIntoTextBox(String text) {
@@ -75,6 +80,61 @@ public class MyBlockScreen extends AbstractContainerScreen<MyBlockMenu> {
             insertIntoTextBox("/execute positioned %d %d %d unless entity @e[type=armor_stand, tag=my_label, distance=..5] run summon armor_stand ~ ~ ~ {CustomName:'{\"text\":\"Welcome\"}',CustomNameVisible:1b,Invisible:1b,Marker:1b,Tags:[\"my_label\"]}");
         }).bounds(this.leftPos + 110, this.topPos + 16, 40, 20).build());
 
+        this.addRenderableWidget(Button.builder(
+                        Component.literal(blockEntity.isUsingRedstone() ? "Redstone" : "Proximity"),
+                        btn -> {
+                            boolean newState = !blockEntity.isUsingRedstone(); // invert current state
+                            blockEntity.setUsingRedstone(newState);
+                            btn.setMessage(Component.literal(newState ? "Redstone" : "Proximity"));
+
+                            ModMessages.INSTANCE.sendToServer(
+                                    new UpdateRedstoneModePacket(blockEntity.getBlockPos(), newState)
+                            );
+                        })
+                .bounds(this.leftPos + 260, this.topPos + 16, 60, 20)
+                .build());
+
+        this.addRenderableWidget(Button.builder(
+                        Component.literal(blockEntity.isSingleUse() ? "Single" : "Repeat"),
+                        btn -> {
+                            boolean newVal = !blockEntity.isSingleUse();
+                            blockEntity.setSingleUse(newVal);
+                            btn.setMessage(Component.literal(newVal ? "Single" : "Repeat"));
+
+                            ModMessages.INSTANCE.sendToServer(new UpdateSingleUsePacket(blockEntity.getBlockPos(), newVal));
+                        })
+                .bounds(this.leftPos + 340, this.topPos + 16, 40, 20)
+                .build());
+
+
+        if (Minecraft.getInstance().player != null) {
+            MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+            boolean isCreative = gameMode != null && gameMode.getPlayerMode() == GameType.CREATIVE;
+
+            if (isCreative) {
+                this.addRenderableWidget(Button.builder(
+                                Component.literal(blockEntity.isCreativeOnly() ? "Creative" : "Survival"),
+                                btn -> {
+                                    boolean newVal = !blockEntity.isCreativeOnly();
+                                    blockEntity.setCreativeOnly(newVal);
+                                    btn.setMessage(Component.literal(newVal ? "Creative" : "Survival"));
+
+                                    ModMessages.INSTANCE.sendToServer(new UpdateCreativeOnlyPacket(blockEntity.getBlockPos(), newVal));
+                                })
+                        .bounds(this.leftPos + 400, this.topPos + 16, 50, 20)
+                        .build());
+
+                this.addRenderableWidget(Button.builder(
+                                Component.literal("Reset History"),
+                                btn -> {
+                                    ModMessages.INSTANCE.sendToServer(
+                                            new ClearTriggerHistoryPacket(blockEntity.getBlockPos()));
+                                })
+                        .bounds(this.leftPos + 470, this.topPos + 16, 80, 20)
+                        .build());
+            }
+        }
+
         this.addRenderableWidget(Button.builder(Component.literal("CLEAR"), btn -> {
             textBox.setValue("");
         }).bounds(this.leftPos + 600, this.topPos + 16, 40, 20).build());
@@ -95,6 +155,9 @@ public class MyBlockScreen extends AbstractContainerScreen<MyBlockMenu> {
         textBox.setValue(menu.syncedText);
 
         this.addRenderableWidget(textBox);
+
+
+
     }
 
     @Override

@@ -43,4 +43,8 @@ public class MyBlockMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
     }
+
+    public MyCustomBlockEntity getBlockEntity() {
+        return this.blockEntity;
+    }
 }
