@@ -9,13 +9,9 @@ A custom Minecraft Forge mod for **1.20.1**, designed for RPG maps and adventure
 - **Programmable Command Blocks**
   - Triggered by redstone or proximity
   - Optional creative-only or single-use settings
-- **Advanced Placeholders**
-  - `@p` → triggering player's name
-  - `%d` → block position (x y z rotation)
-  - `~s` → assigned slot for player (1–26)
-  - `r[x-y]` → random value in range
+  - Unlimited commands in one block for example
 - **Teleport with Pets**
-  - Teleports player's tamed pets (e.g. Hexerei crow, cat, dog) with them — even across dimensions
+  - Teleports player and his unseated tamed pets with them — even across dimensions
 - **Villager Traders**
   - Spawn custom villagers that sell modded items
 - **Chest & Item Manipulation**
@@ -34,8 +30,7 @@ A custom Minecraft Forge mod for **1.20.1**, designed for RPG maps and adventure
 ```mcfunction
 /execute in minecraft:overworld run tp @p 793 92 1903
 ```
-
-> Teleports player to Overworld at (793, 92, 1903) and brings nearby tameable pets.
+> Teleports player to Overworld at (793, 92, 1903) and brings nearby tamed pets.
 
 ---
 
