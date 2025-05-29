@@ -93,7 +93,7 @@ A custom Minecraft Forge mod for **1.20.1**, designed for RPG maps and adventure
 3. Launch the game
 
 
-## note: if you ever put a proximity trigger on a teleport use this command: /crpgblocks_disable
+## note: if you ever put a proximity trigger on a teleport block and cannot approach the block to change it use this command: /crpgblocks_disable
 
 ---
 
